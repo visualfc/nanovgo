@@ -2,8 +2,9 @@ package perfgraph
 
 import (
 	"fmt"
-	"github.com/shibukawa/nanovgo"
 	"time"
+
+	"github.com/visualfc/nanovgo"
 )
 
 const (
@@ -11,10 +12,10 @@ const (
 )
 
 var backgroundColor = nanovgo.RGBA(0, 0, 0, 128)
-var graphColor  = nanovgo.RGBA(255, 192, 0, 128)
-var titleTextColor  = nanovgo.RGBA(255, 192, 0, 128)
+var graphColor = nanovgo.RGBA(255, 192, 0, 128)
+var titleTextColor = nanovgo.RGBA(255, 192, 0, 128)
 var fpsTextColor = nanovgo.RGBA(240, 240, 240, 255)
-var averageTextColor  = nanovgo.RGBA(240, 240, 240, 160)
+var averageTextColor = nanovgo.RGBA(240, 240, 240, 160)
 var msTextColor = nanovgo.RGBA(240, 240, 240, 255)
 
 // PerfGraph shows FPS counter on NanoVGo application

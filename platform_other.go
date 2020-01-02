@@ -4,10 +4,10 @@
 package nanovgo
 
 import (
-	"log"
-	"unsafe"
 	"encoding/binary"
+	"log"
 	"math"
+	"unsafe"
 )
 
 type Float float32
@@ -35,6 +35,6 @@ func castFloat32ToByte(vertexes []float32) []byte {
 	return b
 }
 
-func dumpLog(values ...interface{}) {
-	log.Println(values...)
+func dumpLog(format string, v ...interface{}) {
+	log.Printf(format, v...)
 }

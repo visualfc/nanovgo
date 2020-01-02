@@ -4,14 +4,15 @@ package main
 
 import (
 	"fmt"
-	"github.com/goxjs/gl"
-	"github.com/goxjs/glfw"
-	"github.com/shibukawa/nanovgo"
-	"github.com/shibukawa/nanovgo/perfgraph"
-	"github.com/shibukawa/nanovgo/sample/demo"
 	"io/ioutil"
 	"log"
 	"net/http"
+
+	"github.com/visualfc/gl"
+	"github.com/visualfc/glfw"
+	"github.com/visualfc/nanovgo"
+	"github.com/visualfc/nanovgo/perfgraph"
+	"github.com/visualfc/nanovgo/sample/demo"
 )
 
 var blowup bool

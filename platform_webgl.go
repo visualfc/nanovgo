@@ -4,7 +4,7 @@ package nanovgo
 
 import (
 	"encoding/binary"
-	"honnef.co/go/js/console"
+	"log"
 	"math"
 )
 
@@ -32,6 +32,6 @@ func castFloat32ToByte(vertexes []float32) []byte {
 	return b
 }
 
-func dumpLog(values ...interface{}) {
-	console.Log(values...)
+func dumpLog(format string, v ...interface{}) {
+	log.Printf(format, v...)
 }
