@@ -90,3 +90,35 @@ const (
 	// Hole keeps internal hole
 	Hole Winding = 2
 )
+
+type BlendFactor int
+
+const (
+	Zero             BlendFactor = 1 << 0
+	One              BlendFactor = 1 << 1
+	SrcColor         BlendFactor = 1 << 2
+	OneMinusSrcColor BlendFactor = 1 << 3
+	DstColor         BlendFactor = 1 << 4
+	OneMinusDstColor BlendFactor = 1 << 5
+	SrcAlpha         BlendFactor = 1 << 6
+	OneMinusSrcAlpha BlendFactor = 1 << 7
+	DstAlpha         BlendFactor = 1 << 8
+	OneMinusDstAlpha BlendFactor = 1 << 9
+	SrcAlphaSaturate BlendFactor = 1 << 10
+)
+
+type CompositeOperation int
+
+const (
+	SourceOver CompositeOperation = iota
+	SourceIn
+	SourceOut
+	Atop
+	DestinationOver
+	DestinationIn
+	DestinationOut
+	DestinationAtop
+	Lighter
+	Copy
+	Xor
+)

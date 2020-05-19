@@ -60,10 +60,12 @@ func main() {
 
 	for !window.ShouldClose() {
 		t, _ := fps.UpdateGraph()
-
+		_ = t
 		fbWidth, fbHeight := window.GetFramebufferSize()
 		winWidth, winHeight := window.GetSize()
 		mx, my := window.GetCursorPos()
+		_ = mx
+		_ = my
 
 		pixelRatio := float32(fbWidth) / float32(winWidth)
 		gl.Viewport(0, 0, fbWidth, fbHeight)

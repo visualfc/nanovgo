@@ -228,6 +228,26 @@ func (c *Context) Reset() {
 	c.getState().reset()
 }
 
+// SetGlobalCompositeOperation sets the composite operation. The op parameter should be one of CompositeOperation.
+func (c *Context) SetGlobalCompositeOperation(op CompositeOperation) {
+	c.getState().compositeOperation = compositeOperationState(op)
+}
+
+// SetGlobalCompositeBlendFunc sets the composite operation with custom pixel arithmetic. The parameters should be one of BlendFactor.
+func (c *Context) SetGlobalCompositeBlendFunc(sfactor BlendFactor, dfactor BlendFactor) {
+	c.SetGlobalCompositeBlendFuncSeparate(sfactor, dfactor, sfactor, dfactor)
+}
+
+// SetGlobalCompositeBlendFuncSeparate sets the composite operation with custom pixel arithmetic for RGB and alpha components separately. The parameters should be one of BlendFactor.
+func (c *Context) SetGlobalCompositeBlendFuncSeparate(srcRGB, dstRGB, srcAlpha, dstAlpha BlendFactor) {
+	var op nvgCompositeOperationState
+	op.srcRGB = srcRGB
+	op.dstRGB = dstRGB
+	op.srcAlpha = srcAlpha
+	op.dstAlpha = dstAlpha
+	c.getState().compositeOperation = op
+}
+
 // SetStrokeWidth sets the stroke width of the stroke style.
 func (c *Context) SetStrokeWidth(width float32) {
 	c.getState().strokeWidth = width
@@ -721,7 +741,7 @@ func (c *Context) Fill() {
 	fillPaint.innerColor.A *= state.alpha
 	fillPaint.outerColor.A *= state.alpha
 
-	c.params.renderFill(&fillPaint, &state.scissor, c.fringeWidth, c.cache.bounds, c.cache.paths)
+	c.params.renderFill(&fillPaint, &state.compositeOperation, &state.scissor, c.fringeWidth, c.cache.bounds, c.cache.paths)
 
 	// Count triangles
 	for i := 0; i < len(c.cache.paths); i++ {
@@ -763,7 +783,7 @@ func (c *Context) Stroke() {
 	} else {
 		c.cache.expandStroke(strokeWidth*0.5, state.lineCap, state.lineJoin, state.miterLimit, c.fringeWidth, c.tessTol)
 	}
-	c.params.renderStroke(&strokePaint, &state.scissor, c.fringeWidth, strokeWidth, c.cache.paths)
+	c.params.renderStroke(&strokePaint, &state.compositeOperation, &state.scissor, c.fringeWidth, strokeWidth, c.cache.paths)
 
 	// Count triangles
 	for i := 0; i < len(c.cache.paths); i++ {
@@ -1547,7 +1567,7 @@ func (c *Context) renderText(vertexes []nvgVertex) {
 	paint.innerColor.A *= state.alpha
 	paint.outerColor.A *= state.alpha
 
-	c.params.renderTriangleStrip(&paint, &state.scissor, vertexes)
+	c.params.renderTriangleStrip(&paint, &state.compositeOperation, &state.scissor, vertexes)
 
 	c.drawCallCount++
 	c.textTriCount += len(vertexes) / 3

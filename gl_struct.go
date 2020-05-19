@@ -30,6 +30,7 @@ type glCall struct {
 	triangleOffset int
 	triangleCount  int
 	uniformOffset  int
+	blendFunc      glnvgBlend
 }
 
 type glPath struct {
@@ -113,4 +114,54 @@ type glTexture struct {
 	width, height int
 	texType       nvgTextureType
 	flags         ImageFlags
+}
+
+type glnvgBlend struct {
+	srcRGB   gl.Enum
+	dstRGB   gl.Enum
+	srcAlpha gl.Enum
+	dstAlpha gl.Enum
+}
+
+func glnvg_convertBlendFuncFactor(factor BlendFactor) gl.Enum {
+	switch factor {
+	case Zero:
+		return gl.ZERO
+	case One:
+		return gl.ONE
+	case SrcColor:
+		return gl.SRC_COLOR
+	case OneMinusSrcColor:
+		return gl.ONE_MINUS_SRC_COLOR
+	case DstColor:
+		return gl.DST_COLOR
+	case OneMinusDstColor:
+		return gl.ONE_MINUS_DST_COLOR
+	case SrcAlpha:
+		return gl.SRC_ALPHA
+	case OneMinusSrcAlpha:
+		return gl.ONE_MINUS_SRC_ALPHA
+	case DstAlpha:
+		return gl.DST_ALPHA
+	case OneMinusDstAlpha:
+		return gl.ONE_MINUS_DST_ALPHA
+	case SrcAlphaSaturate:
+		return gl.SRC_ALPHA_SATURATE
+	}
+	return gl.INVALID_ENUM
+}
+
+func glnvg__blendCompositeOperation(op *nvgCompositeOperationState) glnvgBlend {
+	var blend glnvgBlend
+	blend.srcRGB = glnvg_convertBlendFuncFactor(op.srcRGB)
+	blend.dstRGB = glnvg_convertBlendFuncFactor(op.dstRGB)
+	blend.srcAlpha = glnvg_convertBlendFuncFactor(op.srcAlpha)
+	blend.dstAlpha = glnvg_convertBlendFuncFactor(op.dstAlpha)
+	if blend.srcRGB == gl.INVALID_ENUM || blend.dstRGB == gl.INVALID_ENUM || blend.srcAlpha == gl.INVALID_ENUM || blend.dstAlpha == gl.INVALID_ENUM {
+		blend.srcRGB = gl.ONE
+		blend.dstRGB = gl.ONE_MINUS_SRC_ALPHA
+		blend.srcAlpha = gl.ONE
+		blend.dstAlpha = gl.ONE_MINUS_SRC_ALPHA
+	}
+	return blend
 }

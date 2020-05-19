@@ -116,6 +116,19 @@ type glContext struct {
 	stencilFunc     gl.Enum
 	stencilFuncRef  int
 	stencilFuncMask uint32
+
+	blendFunc glnvgBlend
+}
+
+func (c *glContext) blendFuncSeparate(blend *glnvgBlend) {
+	if (c.blendFunc.srcRGB != blend.srcRGB) ||
+		(c.blendFunc.dstRGB != blend.dstRGB) ||
+		(c.blendFunc.srcAlpha != blend.srcAlpha) ||
+		(c.blendFunc.dstAlpha != blend.dstAlpha) {
+
+		c.blendFunc = *blend
+		gl.BlendFuncSeparate(blend.srcRGB, blend.dstRGB, blend.srcAlpha, blend.dstAlpha)
+	}
 }
 
 func (c *glContext) findTexture(id int) *glTexture {
@@ -573,6 +586,10 @@ func (p *glParams) renderFlush() {
 		c.stencilFunc = gl.ALWAYS
 		c.stencilFuncRef = 0
 		c.stencilFuncMask = 0xffffffff
+		c.blendFunc.srcRGB = gl.INVALID_ENUM
+		c.blendFunc.dstRGB = gl.INVALID_ENUM
+		c.blendFunc.srcAlpha = gl.INVALID_ENUM
+		c.blendFunc.dstAlpha = gl.INVALID_ENUM
 		b := castFloat32ToByte(c.vertexes)
 		//dumpLog("vertex:", c.vertexes)
 		// Upload vertex data
@@ -589,6 +606,7 @@ func (p *glParams) renderFlush() {
 
 		for i := range c.calls {
 			call := &c.calls[i]
+			c.blendFuncSeparate(&call.blendFunc)
 			switch call.callType {
 			case glnvgFILL:
 				c.fill(call)
@@ -615,7 +633,7 @@ func (p *glParams) renderFlush() {
 	c.uniforms = c.uniforms[:0]
 }
 
-func (p *glParams) renderFill(paint *Paint, scissor *nvgScissor, fringe float32, bounds [4]float32, paths []nvgPath) {
+func (p *glParams) renderFill(paint *Paint, compositeOperation *nvgCompositeOperationState, scissor *nvgScissor, fringe float32, bounds [4]float32, paths []nvgPath) {
 	c := p.context
 	var glPaths []glPath
 	c.calls = append(c.calls, glCall{
@@ -630,6 +648,7 @@ func (p *glParams) renderFill(paint *Paint, scissor *nvgScissor, fringe float32,
 	} else {
 		call.callType = glnvgFILL
 	}
+	call.blendFunc = glnvg__blendCompositeOperation(compositeOperation)
 
 	// Allocate vertices for all the paths
 	vertexOffset := c.allocVertexMemory(maxVertexCount(paths) + 6)
@@ -732,7 +751,7 @@ func (p *glParams) renderFill(paint *Paint, scissor *nvgScissor, fringe float32,
 	c.convertPaint(paintFrag, paint, scissor, fringe, fringe, -1.0)
 }
 
-func (p *glParams) renderStroke(paint *Paint, scissor *nvgScissor, fringe float32, strokeWidth float32, paths []nvgPath) {
+func (p *glParams) renderStroke(paint *Paint, compositeOperation *nvgCompositeOperationState, scissor *nvgScissor, fringe float32, strokeWidth float32, paths []nvgPath) {
 	c := p.context
 	var glPaths []glPath
 	p.context.calls = append(c.calls, glCall{})
@@ -741,6 +760,7 @@ func (p *glParams) renderStroke(paint *Paint, scissor *nvgScissor, fringe float3
 	glPaths, call.pathOffset = c.allocPath(len(paths))
 	call.pathCount = len(paths)
 	call.image = paint.image
+	call.blendFunc = glnvg__blendCompositeOperation(compositeOperation)
 
 	// Allocate vertices for all the paths
 	vertexOffset := c.allocVertexMemory(maxVertexCount(paths))
@@ -786,7 +806,7 @@ func (p *glParams) renderStroke(paint *Paint, scissor *nvgScissor, fringe float3
 	}
 }
 
-func (p *glParams) renderTriangles(paint *Paint, scissor *nvgScissor, vertexes []nvgVertex) {
+func (p *glParams) renderTriangles(paint *Paint, compositeOperation *nvgCompositeOperationState, scissor *nvgScissor, vertexes []nvgVertex) {
 	c := p.context
 
 	vertexCount := len(vertexes)
@@ -800,6 +820,7 @@ func (p *glParams) renderTriangles(paint *Paint, scissor *nvgScissor, vertexes [
 		triangleCount:  vertexCount,
 	})
 	call := &c.calls[callIndex]
+	call.blendFunc = glnvg__blendCompositeOperation(compositeOperation)
 
 	for i := 0; i < vertexCount; i++ {
 		vertex := &vertexes[i]
@@ -819,7 +840,7 @@ func (p *glParams) renderTriangles(paint *Paint, scissor *nvgScissor, vertexes [
 	f0.setType(nsvgShaderIMG)
 }
 
-func (p *glParams) renderTriangleStrip(paint *Paint, scissor *nvgScissor, vertexes []nvgVertex) {
+func (p *glParams) renderTriangleStrip(paint *Paint, compositeOperation *nvgCompositeOperationState, scissor *nvgScissor, vertexes []nvgVertex) {
 	c := p.context
 
 	vertexCount := len(vertexes)
@@ -833,6 +854,7 @@ func (p *glParams) renderTriangleStrip(paint *Paint, scissor *nvgScissor, vertex
 		triangleCount:  vertexCount,
 	})
 	call := &c.calls[callIndex]
+	call.blendFunc = glnvg__blendCompositeOperation(compositeOperation)
 
 	for i := 0; i < vertexCount; i++ {
 		vertex := &vertexes[i]

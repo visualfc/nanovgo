@@ -14,10 +14,10 @@ type nvgParams interface {
 	renderViewport(width, height int)
 	renderCancel()
 	renderFlush()
-	renderFill(paint *Paint, scissor *nvgScissor, fringe float32, bounds [4]float32, paths []nvgPath)
-	renderStroke(paint *Paint, scissor *nvgScissor, fringe float32, strokeWidth float32, paths []nvgPath)
-	renderTriangles(paint *Paint, scissor *nvgScissor, vertexes []nvgVertex)
-	renderTriangleStrip(paint *Paint, scissor *nvgScissor, vertexes []nvgVertex)
+	renderFill(paint *Paint, compositeOperation *nvgCompositeOperationState, scissor *nvgScissor, fringe float32, bounds [4]float32, paths []nvgPath)
+	renderStroke(paint *Paint, compositeOperation *nvgCompositeOperationState, scissor *nvgScissor, fringe float32, strokeWidth float32, paths []nvgPath)
+	renderTriangles(paint *Paint, compositeOperation *nvgCompositeOperationState, scissor *nvgScissor, vertexes []nvgVertex)
+	renderTriangleStrip(paint *Paint, compositeOperation *nvgCompositeOperationState, scissor *nvgScissor, vertexes []nvgVertex)
 	renderDelete()
 }
 
@@ -56,24 +56,81 @@ type nvgScissor struct {
 	extent [2]float32
 }
 
+type nvgCompositeOperationState struct {
+	srcRGB   BlendFactor
+	dstRGB   BlendFactor
+	srcAlpha BlendFactor
+	dstAlpha BlendFactor
+}
+
+func compositeOperationState(op CompositeOperation) nvgCompositeOperationState {
+	var sfactor, dfactor BlendFactor
+	if op == SourceOver {
+		sfactor = One
+		dfactor = OneMinusSrcAlpha
+	} else if op == SourceIn {
+		sfactor = DstAlpha
+		dfactor = Zero
+	} else if op == SourceOut {
+		sfactor = OneMinusDstAlpha
+		dfactor = Zero
+	} else if op == Atop {
+		sfactor = DstAlpha
+		dfactor = OneMinusSrcAlpha
+	} else if op == DestinationOver {
+		sfactor = OneMinusDstAlpha
+		dfactor = One
+	} else if op == DestinationIn {
+		sfactor = Zero
+		dfactor = SrcAlpha
+	} else if op == DestinationOut {
+		sfactor = Zero
+		dfactor = OneMinusSrcAlpha
+	} else if op == DestinationAtop {
+		sfactor = OneMinusDstAlpha
+		dfactor = SrcAlpha
+	} else if op == Lighter {
+		sfactor = One
+		dfactor = One
+	} else if op == Copy {
+		sfactor = One
+		dfactor = Zero
+	} else if op == Xor {
+		sfactor = OneMinusDstAlpha
+		dfactor = OneMinusSrcAlpha
+	} else {
+		sfactor = One
+		dfactor = Zero
+	}
+
+	var state nvgCompositeOperationState
+	state.srcRGB = sfactor
+	state.dstRGB = dfactor
+	state.srcAlpha = sfactor
+	state.dstAlpha = dfactor
+	return state
+}
+
 type nvgState struct {
-	fill, stroke  Paint
-	strokeWidth   float32
-	miterLimit    float32
-	lineJoin      LineCap
-	lineCap       LineCap
-	alpha         float32
-	xform         TransformMatrix
-	scissor       nvgScissor
-	fontSize      float32
-	letterSpacing float32
-	lineHeight    float32
-	fontBlur      float32
-	textAlign     Align
-	fontID        int
+	compositeOperation nvgCompositeOperationState
+	fill, stroke       Paint
+	strokeWidth        float32
+	miterLimit         float32
+	lineJoin           LineCap
+	lineCap            LineCap
+	alpha              float32
+	xform              TransformMatrix
+	scissor            nvgScissor
+	fontSize           float32
+	letterSpacing      float32
+	lineHeight         float32
+	fontBlur           float32
+	textAlign          Align
+	fontID             int
 }
 
 func (s *nvgState) reset() {
+	s.compositeOperation = compositeOperationState(SourceOver)
 	s.fill.setPaintColor(RGBA(255, 255, 255, 255))
 	s.stroke.setPaintColor(RGBA(0, 0, 0, 255))
 	s.strokeWidth = 1.0

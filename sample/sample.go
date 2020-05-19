@@ -52,7 +52,7 @@ func main() {
 
 	demoData := LoadDemo(ctx)
 
-	glfw.SwapInterval(0)
+	glfw.SwapInterval(60)
 
 	fps := perfgraph.NewPerfGraph("Frame Time", "sans")
 
@@ -77,7 +77,6 @@ func main() {
 		gl.Disable(gl.DEPTH_TEST)
 
 		ctx.BeginFrame(winWidth, winHeight, pixelRatio)
-
 		demo.RenderDemo(ctx, float32(mx), float32(my), float32(winWidth), float32(winHeight), t, blowup, demoData)
 		fps.RenderGraph(ctx, 5, 5)
 
